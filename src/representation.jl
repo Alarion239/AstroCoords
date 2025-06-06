@@ -25,7 +25,7 @@ struct SphericalD{T, D} <: AbstractSphericalRepresentation
         new{T, D}(latitude, longitude, distance)
     end
 end
-SphericalD(s::AbstractSphericalRepresentation, d) = Spherical(s.latitude, s.longitude, d)
+SphericalD(s::AbstractSphericalRepresentation, d) = SphericalD(s.latitude, s.longitude, d)
 
 lon(representation::AbstractSphericalRepresentation) = representation.longitude
 lat(representation::AbstractSphericalRepresentation) = representation.latitude
