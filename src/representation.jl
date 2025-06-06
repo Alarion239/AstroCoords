@@ -14,6 +14,8 @@ struct Spherical{T} <: AbstractSphericalRepresentation
     end
 end
 
+
+
 # Spherical coordinates with distance
 struct SphericalD{T, D} <: AbstractSphericalRepresentation
     latitude::T
