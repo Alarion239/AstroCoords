@@ -159,6 +159,7 @@ struct Cartesian{T} <: AbstractCartesianRepresentation
     end
 end
 Cartesian(x::T, y::T, z::T) where {T} = Cartesian{T}(x, y, z)  
+Cartesian(x::T, y::T, z::T) where {T <: Real} = Cartesian{float(T)}(x, y, z)  
 Cartesian(x, y, z) = Cartesian(promote(x, y, z)...)
 Cartesian{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Cartesian{F}, c)
 dist(representation::Cartesian) = one(eltype(typeof(representation))) # Unit sphere distance
