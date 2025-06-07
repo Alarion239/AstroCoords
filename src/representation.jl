@@ -98,7 +98,6 @@ SphericalD{T,D}(c::R, dist::Real) where {T,D,R<:AbstractRepresentation} = conver
 Get the distance component of a representation. Returns `1.0` for unit sphere representations.
 """
 dist(representation::SphericalD) = representation.distance
-dist(representation::Spherical) = one(eltype(typeof(representation)))
 
 
 ############################## CARTESIAN REPRESENTATIONS ##############################
