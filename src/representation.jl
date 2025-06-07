@@ -54,8 +54,8 @@ struct Spherical{T} <: AbstractSphericalRepresentation
         new{T}(latitude, longitude)
     end
 end
-Spherical(lat::T, lon::T) where {T<:Real} = Spherical{T}(lat, lon)
-Spherical(lat::Real, lon::Real) = Spherical(promote(lat, lon)...)
+Spherical(lat::T, lon::T) where {T} = Spherical{T}(lat, lon)
+Spherical(lat, lon) = Spherical(promote(lat, lon)...)
 Spherical{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Spherical{F}, c)
 """
     dist(representation)
@@ -89,8 +89,8 @@ struct SphericalD{T,D} <: AbstractSphericalRepresentation
         new{T,D}(latitude, longitude, distance)
     end
 end
-SphericalD(lat::T, lon::T, dist::D) where {T<:Real, D<:Real} = SphericalD{T,D}(lat, lon, dist)
-SphericalD(lat::Real, lon::Real, dist::Real) = SphericalD(promote(lat, lon)..., dist)
+SphericalD(lat::T, lon::T, dist::D) where {T, D} = SphericalD{T,D}(lat, lon, dist)
+SphericalD(lat, lon, dist) = SphericalD(promote(lat, lon)..., dist)
 SphericalD{T,D}(c::R, dist::Real) where {T,D,R<:AbstractRepresentation} = convert(SphericalD{T,D}, SphericalD(c, dist))
 """
     dist(representation)
@@ -158,8 +158,8 @@ struct Cartesian{T} <: AbstractCartesianRepresentation
         new{T}(x / n, y / n, z / n)
     end
 end
-Cartesian(x::T, y::T, z::T) where {T<:Real} = Cartesian{float(T)}(x, y, z)  
-Cartesian(x::Real, y::Real, z::Real) = Cartesian(promote(x, y, z)...)
+Cartesian(x::T, y::T, z::T) where {T} = Cartesian{T}(x, y, z)  
+Cartesian(x, y, z) = Cartesian(promote(x, y, z)...)
 Cartesian{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Cartesian{F}, c)
 dist(representation::Cartesian) = one(eltype(typeof(representation))) # Unit sphere distance
 
@@ -187,8 +187,8 @@ struct CartesianD{T} <: AbstractCartesianRepresentation
         new{T}(x,y,z)
     end
 end
-CartesianD(x::T, y::T, z::T) where {T<:Real} = CartesianD{float(T)}(x, y, z)
-CartesianD(x::Real, y::Real, z::Real) = CartesianD(promote(x, y, z)...)
+CartesianD(x::T, y::T, z::T) where {T} = CartesianD{T}(x, y, z)
+CartesianD(x, y, z) = CartesianD(promote(x, y, z)...)
 CartesianD{F}(c::T) where {F,T<:AbstractRepresentation} = convert(CartesianD{F}, c)
 # Distance methods for cartesian representations
 dist(representation::CartesianD) = sqrt(representation.x^2 + representation.y^2 + representation.z^2)
