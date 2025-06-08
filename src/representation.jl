@@ -51,12 +51,34 @@ struct Spherical{T} <: AbstractSphericalRepresentation
     longitude::T
     latitude::T
     function Spherical{T}(longitude, latitude) where {T}
-        new{T}(longitude, latitude)
+        lat_norm, lon_norm = _normalize_lat_lon(latitude, longitude)
+        new{T}(lon_norm, lat_norm)
     end
 end
 Spherical(lon::T, lat::T) where {T} = Spherical{T}(lon, lat)
 Spherical(lon, lat) = Spherical(promote(lon, lat)...)
 Spherical{F}(c::AbstractRepresentation) where {F} = convert(Spherical{F}, c)
+
+
+# Optimized helper functions for angle normalization
+function _normalize_lat_lon(lat::T, lon::T) where T
+    # Use rem2pi for better precision than mod(x, 2π)
+    lat_normalized = rem2pi(lat, RoundDown)  # Normalize to [0, 2π] with higher precision
+    lon_normalized = rem2pi(lon, RoundNearest)  # Normalize to [-π, π] directly
+    
+    # Early return if latitude is already in valid range
+    if lat_normalized <= π/2
+        return lat_normalized, lon_normalized
+    elseif lat_normalized >= 3π/2
+        return lat_normalized - 2π, lon_normalized
+    else
+        # Handle pole crossing (π/2 < lat < 3π/2)
+        lat_norm = π - lat_normalized
+        # Use muladd for better precision: lon + π
+        lon_norm = rem2pi(muladd(lon_normalized, 1, π), RoundNearest)
+        return lat_norm, lon_norm
+    end
+end
 
 
 
@@ -82,7 +104,8 @@ struct SphericalD{T,D} <: AbstractSphericalRepresentation
     latitude::T
     distance::D
     function SphericalD{T,D}(longitude, latitude, distance) where {T,D}
-        new{T,D}(longitude, latitude, distance)
+        lat_norm, lon_norm = _normalize_lat_lon(latitude, longitude)
+        new{T,D}(lon_norm, lat_norm, distance)
     end
 end
 SphericalD(lon::T, lat::T, dist::D) where {T, D} = SphericalD{T,D}(lon, lat, dist)
@@ -285,6 +308,7 @@ Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude))}(l
 Base.show(io::IO, s::SphericalD) = print(io, "SphericalD{$(typeof(s.longitude)),$(typeof(s.distance))}(lon=$(s.longitude), lat=$(s.latitude), dist=$(s.distance))")
 Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
 Base.show(io::IO, c::CartesianD) = print(io, "CartesianD{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
+
 
 
 
