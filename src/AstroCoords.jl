@@ -1,6 +1,9 @@
 module AstroCoords
 
-
+# Include types first, then accessors that use those types
+include("frames.jl")
+include("representation.jl")
+include("coordinate.jl")
 include("coordinate_accessors.jl")
 
 export Coordinate,

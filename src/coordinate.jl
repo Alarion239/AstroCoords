@@ -8,8 +8,7 @@ a reference frame with a coordinate representation. It provides the foundation f
 coordinate operations in AstroCoords.jl.
 """
 
-include("representation.jl")
-include("frames.jl")
+using ..AstroCoords: AbstractFrame, AbstractRepresentation
 
 """
     Coordinate{F<:AbstractFrame, R<:AbstractRepresentation}

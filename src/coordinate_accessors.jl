@@ -21,8 +21,10 @@ The accessors are specialized for specific frame types to provide natural naming
 
 All accessors are optimized for maximum performance using direct representation access and compile-time dispatch.
 """
+#####
+using AstroCoords: Coordinate, AbstractFrame, AbstractRepresentation, 
+ICRS, Galactic, AltAz, FK4, FK5, FK4NoETerms, HADec, Ecliptic, Supergalactic, TEME, CIRS, ITRS, HCRS
 
-include("coordinate.jl")
 # =============================================================================
 # Generic Coordinate Component Accessors
 # =============================================================================
