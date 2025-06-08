@@ -39,30 +39,26 @@ lat(representation::AbstractSphericalRepresentation) = representation.latitude
 Spherical coordinates on a unit sphere (latitude, longitude).
 
 # Fields
-- `latitude::T`: Latitude angle
 - `longitude::T`: Longitude angle
+- `latitude::T`: Latitude angle
 
 # Examples
 ```julia
-s = Spherical(π/4, π/6)  # 45° latitude, 30° longitude
+s = Spherical(π/6, π/4)  # 30° longitude, 45° latitude
 ```
 """
 struct Spherical{T} <: AbstractSphericalRepresentation
-    latitude::T
     longitude::T
-    function Spherical{T}(latitude, longitude) where {T}
-        new{T}(latitude, longitude)
+    latitude::T
+    function Spherical{T}(longitude, latitude) where {T}
+        new{T}(longitude, latitude)
     end
 end
-Spherical(lat::T, lon::T) where {T} = Spherical{T}(lat, lon)
-Spherical(lat, lon) = Spherical(promote(lat, lon)...)
+Spherical(lon::T, lat::T) where {T} = Spherical{T}(lon, lat)
+Spherical(lon, lat) = Spherical(promote(lon, lat)...)
 Spherical{F}(c::AbstractRepresentation) where {F} = convert(Spherical{F}, c)
-"""
-    dist(representation)
 
-Get the distance component of a representation. Returns `1.0` for unit sphere representations.
-"""
-dist(representation::Spherical) = 1.0
+
 
 """
     SphericalD{T,D} <: AbstractSphericalRepresentation
@@ -71,33 +67,28 @@ Spherical coordinates with distance (latitude, longitude, distance).
 Angles and distances can have different types and units.
 
 # Fields
+- `longitude::T`: Longitude angle
 - `latitude::T`: Latitude angle
-- `longitude::T`: Longitude angle  
 - `distance::D`: Distance from origin
 
 # Examples
 ```julia
-s = SphericalD(π/4, π/6, 2.0)  # 45° latitude, 30° longitude, distance 2
+s = SphericalD(π/6, π/4, 2.0)  # 30° longitude, 45° latitude, distance 2
 # Could also be: SphericalD(12.3u"degree", 44u"degree", 23u"AU")
 ```
 """
 struct SphericalD{T,D} <: AbstractSphericalRepresentation
-    latitude::T
     longitude::T
+    latitude::T
     distance::D
-    function SphericalD{T,D}(latitude, longitude, distance) where {T,D}
-        new{T,D}(latitude, longitude, distance)
+    function SphericalD{T,D}(longitude, latitude, distance) where {T,D}
+        new{T,D}(longitude, latitude, distance)
     end
 end
-SphericalD(lat::T, lon::T, dist::D) where {T, D} = SphericalD{T,D}(lat, lon, dist)
-SphericalD(lat, lon, dist) = SphericalD(promote(lat, lon)..., dist)
+SphericalD(lon::T, lat::T, dist::D) where {T, D} = SphericalD{T,D}(lon, lat, dist)
+SphericalD(lon, lat, dist) = SphericalD(promote(lon, lat)..., dist)
 SphericalD{T,D}(c::R, dist::Real) where {T,D,R<:AbstractRepresentation} = convert(SphericalD{T,D}, SphericalD(c, dist))
-"""
-    dist(representation)
 
-Get the distance component of a representation. Returns `1.0` for unit sphere representations.
-"""
-dist(representation::SphericalD) = representation.distance
 
 
 ############################## CARTESIAN REPRESENTATIONS ##############################
@@ -161,7 +152,7 @@ Cartesian(x::T, y::T, z::T) where {T} = Cartesian{T}(x, y, z)
 Cartesian(x::T, y::T, z::T) where {T <: Real} = Cartesian{float(T)}(x, y, z)  
 Cartesian(x, y, z) = Cartesian(promote(x, y, z)...)
 Cartesian{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Cartesian{F}, c)
-dist(::Cartesian{T}) where {T} = one(T) # Unit sphere distance
+
 
 
 """
@@ -190,55 +181,81 @@ end
 CartesianD(x::T, y::T, z::T) where {T} = CartesianD{T}(x, y, z)
 CartesianD(x, y, z) = CartesianD(promote(x, y, z)...)
 CartesianD{F}(c::T) where {F,T<:AbstractRepresentation} = convert(CartesianD{F}, c)
-# Distance methods for cartesian representations
+
+"""
+    dist(representation::AbstractRepresentation)
+
+Get the distance component of a coordinate representation.
+
+# Returns
+- For `Spherical{T}`: Returns `1.0` of type `Float64` (unit sphere)
+- For `Cartesian{T}`: Returns unit length of the type `T` (unit sphere)
+- For `SphericalD{T,D}`: Returns the stored distance value of type `D`
+- For `CartesianD{T}`: Returns the computed Euclidean distance √(x² + y² + z²) of type `T`
+
+# Examples
+```julia
+julia> dist(Spherical(π/4, π/6))
+1.0
+
+julia> dist(SphericalD(π/4, π/6, 5.0))
+5.0
+
+julia> dist(CartesianD(3.0, 4.0, 0.0))
+5.0
+```
+"""
+dist(representation::SphericalD) = representation.distance
 dist(representation::CartesianD) = sqrt(representation.x^2 + representation.y^2 + representation.z^2)
+dist(::Cartesian{T}) where {T} = one(T)
+dist(representation::Spherical) = 1.0
 
 
 
 ############################## COORDINATE CONVERSION HELPERS ##############################
 
 # Helper functions to avoid code duplication
-_cart_to_spherical_lat(x, y, z) = atan(z, sqrt(x^2 + y^2))
 _cart_to_spherical_lon(x, y, z) = atan(y, x)
-_spherical_to_cart_x(lat, lon, r=1) = r * cos(lat) * cos(lon)
-_spherical_to_cart_y(lat, lon, r=1) = r * cos(lat) * sin(lon)
-_spherical_to_cart_z(lat, lon, r=1) = r * sin(lat)
+_cart_to_spherical_lat(x, y, z) = atan(z, sqrt(x^2 + y^2))
+_spherical_to_cart_x(lon, lat, r=1) = r * cos(lat) * cos(lon)
+_spherical_to_cart_y(lon, lat, r=1) = r * cos(lat) * sin(lon)
+_spherical_to_cart_z(lon, lat, r=1) = r * sin(lat)
 
 ############################## CONVERSIONS ##############################
 
 # Spherical conversions
-Spherical(c::AbstractCartesianRepresentation) = Spherical(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)), 
-                                                          _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)))
-Spherical(s::AbstractSphericalRepresentation) = Spherical(lat(s), lon(s))
+Spherical(c::AbstractCartesianRepresentation) = Spherical(_cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)), 
+                                                          _cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)))
+Spherical(s::AbstractSphericalRepresentation) = Spherical(lon(s), lat(s))
 Spherical(s::Spherical) = s
 
 # SphericalD conversions
-SphericalD(s::AbstractSphericalRepresentation; distance = dist(s)) = SphericalD(lat(s), lon(s), distance)
-SphericalD(s::SphericalD; distance = dist(s)) = SphericalD(lat(s), lon(s), distance)
-SphericalD(c::Cartesian{T}; distance = one(T)) where {T} = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
-                                         _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)), distance)
-SphericalD(c::CartesianD; distance = dist(c)) = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
-                                       _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)),
+SphericalD(s::AbstractSphericalRepresentation; distance = dist(s)) = SphericalD(lon(s), lat(s), distance)
+SphericalD(s::SphericalD; distance = dist(s)) = SphericalD(lon(s), lat(s), distance)
+SphericalD(c::Cartesian{T}; distance = one(T)) where {T} = SphericalD(_cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)),
+                                         _cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)), distance)
+SphericalD(c::CartesianD; distance = dist(c)) = SphericalD(_cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)),
+                                       _cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
                                        distance)
-SphericalD(d) = x::AbstractRepresentation -> SphericalD(x, distance = d)
+SphericalD(d) = (x::AbstractRepresentation) -> SphericalD(x, distance = d)
 
 # Cartesian conversions  
-Cartesian(s::AbstractSphericalRepresentation) = Cartesian(_spherical_to_cart_x(lat(s), lon(s)),
-                                                          _spherical_to_cart_y(lat(s), lon(s)),
-                                                          _spherical_to_cart_z(lat(s), lon(s)))
+Cartesian(s::AbstractSphericalRepresentation) = Cartesian(_spherical_to_cart_x(lon(s), lat(s)),
+                                                          _spherical_to_cart_y(lon(s), lat(s)),
+                                                          _spherical_to_cart_z(lon(s), lat(s)))
 Cartesian(c::AbstractCartesianRepresentation) = Cartesian(x_coord(c), y_coord(c), z_coord(c))
 Cartesian(c::Cartesian) = c
 
 # CartesianD conversions
-CartesianD(s::Spherical; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), distance),
-                                         _spherical_to_cart_y(lat(s), lon(s), distance),
-                                         _spherical_to_cart_z(lat(s), lon(s), distance))
-CartesianD(s::SphericalD; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), distance),
-                                       _spherical_to_cart_y(lat(s), lon(s), dist(s)),
-                                       _spherical_to_cart_z(lat(s), lon(s), dist(s)))
+CartesianD(s::Spherical; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lon(s), lat(s), distance),
+                                         _spherical_to_cart_y(lon(s), lat(s), distance),
+                                         _spherical_to_cart_z(lon(s), lat(s), distance))
+CartesianD(s::SphericalD; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lon(s), lat(s), distance),
+                                       _spherical_to_cart_y(lon(s), lat(s), dist(s)),
+                                       _spherical_to_cart_z(lon(s), lat(s), dist(s)))
 CartesianD(c::Cartesian; distance = dist(c)) = CartesianD(distance * x_coord(c), distance * y_coord(c), distance * z_coord(c))
 CartesianD(c::CartesianD; distance = dist(c)) = CartesianD(distance * x_coord(c), distance * y_coord(c), distance * z_coord(c))
-CartesianD(d) = x::AbstractRepresentation -> CartesianD(x, distance = d)
+CartesianD(d) = (x::AbstractRepresentation) -> CartesianD(x, distance = d)
 
 ############################## BASE.CONVERT METHODS ##############################
 
@@ -263,290 +280,11 @@ Base.convert(::Type{CartesianD{T}}, s::SphericalD) where {T} = CartesianD(s)
 Base.convert(::Type{CartesianD{T}}, s::Spherical) where {T} = CartesianD(s)
 Base.convert(::Type{CartesianD{T}}, c::AbstractCartesianRepresentation) where {T} = CartesianD(c)
 
-############################## EQUALITY AND HASHING ##############################
-
-"""
-    ==(a::AbstractRepresentation, b::AbstractRepresentation)
-
-Compare two coordinate representations for equality.
-Representations are equal if they represent the same point in space,
-regardless of coordinate system.
-
-# Design Notes
-- Same-type comparisons use field equality for efficiency
-- Cross-type comparisons convert to canonical Cartesian form  
-- Representations with/without distance are equal only if distance ≈ 1
-- Hash functions ensure `isequal(x,y) ⟹ hash(x) == hash(y)` as required for Sets/Dicts
-
-# Examples
-```julia
-s = Spherical(π/4, π/6)
-c = Cartesian(s)
-@assert s == c  # Different types, same point
-
-sd = SphericalD(π/4, π/6, 1.0)  
-@assert s == sd  # Unit distance matches unit sphere
-```
-"""
-function Base.:(==)(a::T, b::T) where {T<:AbstractRepresentation}
-    # Same type, compare fields directly
-    return _fields_equal(a, b)
-end
-
-function Base.:(==)(a::AbstractRepresentation, b::AbstractRepresentation)
-    # Different types - need to be careful about distance vs unit sphere
-    _has_distance(::Union{SphericalD, CartesianD}) = true
-    _has_distance(::AbstractRepresentation) = false
-    
-    # Both have distance or both are on unit sphere
-    if _has_distance(a) == _has_distance(b)
-        if _has_distance(a)
-            # Both have distance, convert to CartesianD and compare
-            ca, cb = CartesianD(a), CartesianD(b)
-            return x_coord(ca) == x_coord(cb) && y_coord(ca) == y_coord(cb) && z_coord(ca) == z_coord(cb)
-        else
-            # Both on unit sphere, convert to Cartesian and compare
-            ca, cb = Cartesian(a), Cartesian(b)
-            return x_coord(ca) == x_coord(cb) && y_coord(ca) == y_coord(cb) && z_coord(ca) == z_coord(cb)
-        end
-    else
-        # One has distance, one doesn't - they can only be equal if distance is 1
-        if _has_distance(a)
-            return dist(a) == 1 && Cartesian(a) == Cartesian(b)
-        else
-            return dist(b) == 1 && Cartesian(a) == Cartesian(b)
-        end
-    end
-end
-
-# Helper function to compare fields of same type
-_fields_equal(a::Spherical, b::Spherical) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude)
-_fields_equal(a::SphericalD, b::SphericalD) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude) && isequal(a.distance, b.distance)
-_fields_equal(a::Cartesian, b::Cartesian) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
-_fields_equal(a::CartesianD, b::CartesianD) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
-
-"""
-    isequal(a::AbstractRepresentation, b::AbstractRepresentation)
-
-Test whether two coordinate representations are equal, handling special cases like NaN.
-"""
-Base.isequal(a::T, b::T) where {T<:AbstractRepresentation} = _fields_isequal(a, b)
-
-function Base.isequal(a::AbstractRepresentation, b::AbstractRepresentation)
-    _has_distance(::Union{SphericalD, CartesianD}) = true
-    _has_distance(::AbstractRepresentation) = false
-    
-    # Both have distance or both are on unit sphere
-    if _has_distance(a) == _has_distance(b)
-        if _has_distance(a)
-            # Both have distance, convert to CartesianD and compare
-            ca, cb = CartesianD(a), CartesianD(b)
-            return isequal(x_coord(ca), x_coord(cb)) && isequal(y_coord(ca), y_coord(cb)) && isequal(z_coord(ca), z_coord(cb))
-        else
-            # Both on unit sphere, convert to Cartesian and compare
-            ca, cb = Cartesian(a), Cartesian(b)
-            return isequal(x_coord(ca), x_coord(cb)) && isequal(y_coord(ca), y_coord(cb)) && isequal(z_coord(ca), z_coord(cb))
-        end
-    else
-        # One has distance, one doesn't - they can only be equal if distance is 1
-        if _has_distance(a)
-            return isequal(dist(a), 1) && isequal(Cartesian(a), Cartesian(b))
-        else
-            return isequal(dist(b), 1) && isequal(Cartesian(a), Cartesian(b))
-        end
-    end
-end
-
-# Helper function for isequal on same types
-_fields_isequal(a::Spherical, b::Spherical) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude)
-_fields_isequal(a::SphericalD, b::SphericalD) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude) && isequal(a.distance, b.distance)
-_fields_isequal(a::Cartesian, b::Cartesian) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
-_fields_isequal(a::CartesianD, b::CartesianD) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
-
-"""
-    hash(representation::AbstractRepresentation, h::UInt)
-
-Compute hash code for coordinate representations.
-Ensures that representations comparing equal have the same hash.
-Uses Cartesian coordinates as canonical form for cross-type consistency.
-"""
-function Base.hash(rep::AbstractRepresentation, h::UInt)
-    # Convert to Cartesian for canonical representation
-    # This ensures that equal representations have equal hashes
-    c = Cartesian(rep)
-    h = hash(x_coord(c), h)
-    h = hash(y_coord(c), h)
-    h = hash(z_coord(c), h)
-    return hash(:AbstractRepresentation, h)
-end
-
-# Specialized hash for types with distance to distinguish from unit sphere
-function Base.hash(rep::SphericalD, h::UInt)
-    c = CartesianD(rep)  # Preserve distance information
-    h = hash(x_coord(c), h)
-    h = hash(y_coord(c), h)
-    h = hash(z_coord(c), h)
-    return hash(:RepresentationWithDistance, h)
-end
-
-function Base.hash(rep::CartesianD, h::UInt)
-    h = hash(rep.x, h)
-    h = hash(rep.y, h)
-    h = hash(rep.z, h)
-    return hash(:RepresentationWithDistance, h)
-end
-
-############################## APPROXIMATE EQUALITY ##############################
-
-"""
-    isapprox(a::AbstractRepresentation, b::AbstractRepresentation; kwargs...)
-
-Test whether two coordinate representations are approximately equal.
-This is crucial for floating-point coordinate comparisons.
-
-# Arguments
-- `rtol::Real=Base.rtoldefault(...)`: relative tolerance
-- `atol::Real=0`: absolute tolerance  
-- `nans::Bool=false`: whether NaN values are considered equal
-
-# Examples
-```julia
-s1 = Spherical(π/4, π/6)
-s2 = Spherical(π/4 + 1e-15, π/6)
-@assert isapprox(s1, s2)
-```
-"""
-function Base.isapprox(a::T, b::T; kwargs...) where {T<:AbstractRepresentation}
-    return _fields_isapprox(a, b; kwargs...)
-end
-
-function Base.isapprox(a::AbstractRepresentation, b::AbstractRepresentation; kwargs...)
-    _has_distance(::Union{SphericalD, CartesianD}) = true
-    _has_distance(::AbstractRepresentation) = false
-    
-    # Both have distance or both are on unit sphere
-    if _has_distance(a) == _has_distance(b)
-        if _has_distance(a)
-            # Both have distance, convert to CartesianD and compare
-            ca, cb = CartesianD(a), CartesianD(b)
-            return isapprox(x_coord(ca), x_coord(cb); kwargs...) && 
-                   isapprox(y_coord(ca), y_coord(cb); kwargs...) && 
-                   isapprox(z_coord(ca), z_coord(cb); kwargs...)
-        else
-            # Both on unit sphere, convert to Cartesian and compare
-            ca, cb = Cartesian(a), Cartesian(b)
-            return isapprox(x_coord(ca), x_coord(cb); kwargs...) && 
-                   isapprox(y_coord(ca), y_coord(cb); kwargs...) && 
-                   isapprox(z_coord(ca), z_coord(cb); kwargs...)
-        end
-    else
-        # One has distance, one doesn't - they can only be equal if distance ≈ 1
-        if _has_distance(a)
-            return isapprox(dist(a), 1; kwargs...) && isapprox(Cartesian(a), Cartesian(b); kwargs...)
-        else
-            return isapprox(dist(b), 1; kwargs...) && isapprox(Cartesian(a), Cartesian(b); kwargs...)
-        end
-    end
-end
-
-# Helper functions for isapprox on same types
-
-# Generic angular distance that works with any number-like type
-@inline function _angular_distance(a, b)
-    T = promote_type(typeof(a), typeof(b))
-    diff = abs(a - b)
-    
-    # Get 2π in the correct type/units
-    # This works for Float64, Dual, Complex, Unitful, etc.
-    period = 2 * convert(T, π)
-    half_period = period / 2
-    
-    # Use the shorter arc distance
-    return diff > half_period ? period - diff : diff
-end
-
-# Generic pole detection that works with any number type
-@inline function _near_pole(lat, tolerance=nothing)
-    T = typeof(lat)
-    
-    # Default tolerance based on type
-    if tolerance === nothing
-        tolerance = if T <: AbstractFloat
-            sqrt(eps(T))  # Type-appropriate epsilon
-        else
-            sqrt(eps(float(real(T))))  # Handle Complex, Dual, etc.
-        end
-    end
-    
-    # Get π/2 in the correct type
-    half_pi = convert(T, π) / 2
-    
-    return abs(abs(lat) - half_pi) < tolerance
-end
-
-function _fields_isapprox(a::Spherical, b::Spherical; kwargs...)
-    # Fast latitude check first (most likely to fail)
-    isapprox(a.latitude, b.latitude; kwargs...) || return false
-    
-    # Special case: at poles, longitude is undefined - always matches
-    (_near_pole(a.latitude) || _near_pole(b.latitude)) && return true
-    
-    # Generic longitude wraparound comparison
-    angular_dist = _angular_distance(a.longitude, b.longitude)
-    
-    # Get zero in the correct type for comparison
-    zero_val = zero(typeof(angular_dist))
-    return isapprox(angular_dist, zero_val; kwargs...)
-end
-
-function _fields_isapprox(a::SphericalD, b::SphericalD; kwargs...)
-    # Fast checks with early return
-    isapprox(a.latitude, b.latitude; kwargs...) || return false
-    isapprox(a.distance, b.distance; kwargs...) || return false
-    
-    # Pole handling
-    (_near_pole(a.latitude) || _near_pole(b.latitude)) && return true
-    
-    # Generic longitude comparison
-    angular_dist = _angular_distance(a.longitude, b.longitude)
-    zero_val = zero(typeof(angular_dist))
-    return isapprox(angular_dist, zero_val; kwargs...)
-end
-
-function _fields_isapprox(a::Cartesian, b::Cartesian; kwargs...)
-    return isapprox(a.x, b.x; kwargs...) && isapprox(a.y, b.y; kwargs...) && isapprox(a.z, b.z; kwargs...)
-end
-
-function _fields_isapprox(a::CartesianD, b::CartesianD; kwargs...)
-    return isapprox(a.x, b.x; kwargs...) && isapprox(a.y, b.y; kwargs...) && isapprox(a.z, b.z; kwargs...)
-end
-
-############################## ADDITIONAL UTILITY FUNCTIONS ##############################
-
-"""
-    distance(from::AbstractRepresentation, to::AbstractRepresentation)
-
-Calculate the angular distance between two coordinate representations on the unit sphere.
-"""
-function distance(from::AbstractRepresentation, to::AbstractRepresentation)
-    c1 = Cartesian(from)
-    c2 = Cartesian(to)
-    dot_product = x_coord(c1) * x_coord(c2) + y_coord(c1) * y_coord(c2) + z_coord(c1) * z_coord(c2)
-    return acos(clamp(dot_product, -1, 1))
-end
-
-"""
-    norm(representation::AbstractCartesianRepresentation)
-
-Calculate the Euclidean norm of a Cartesian representation.
-"""
-norm(representation::AbstractCartesianRepresentation) = sqrt(x_coord(representation)^2 + y_coord(representation)^2 + z_coord(representation)^2)
-
 # Pretty printing
-Base.show(io::IO, s::Spherical) = print(io, "Spherical(lat=$(s.latitude), lon=$(s.longitude))")
-Base.show(io::IO, s::SphericalD) = print(io, "SphericalD{$(typeof(s.latitude)),$(typeof(s.distance))}(lat=$(s.latitude), lon=$(s.longitude), dist=$(s.distance))")
-Base.show(io::IO, c::Cartesian) = print(io, "Cartesian(x=$(c.x), y=$(c.y), z=$(c.z))")
-Base.show(io::IO, c::CartesianD) = print(io, "CartesianD(x=$(c.x), y=$(c.y), z=$(c.z))")
+Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude))}(lon=$(s.longitude), lat=$(s.latitude))")
+Base.show(io::IO, s::SphericalD) = print(io, "SphericalD{$(typeof(s.longitude)),$(typeof(s.distance))}(lon=$(s.longitude), lat=$(s.latitude), dist=$(s.distance))")
+Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
+Base.show(io::IO, c::CartesianD) = print(io, "CartesianD{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
 
 
 
