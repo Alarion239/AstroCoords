@@ -56,7 +56,7 @@ struct Spherical{T} <: AbstractSphericalRepresentation
 end
 Spherical(lat::T, lon::T) where {T} = Spherical{T}(lat, lon)
 Spherical(lat, lon) = Spherical(promote(lat, lon)...)
-Spherical{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Spherical{F}, c)
+Spherical{F}(c::AbstractRepresentation) where {F} = convert(Spherical{F}, c)
 """
     dist(representation)
 
@@ -161,7 +161,7 @@ Cartesian(x::T, y::T, z::T) where {T} = Cartesian{T}(x, y, z)
 Cartesian(x::T, y::T, z::T) where {T <: Real} = Cartesian{float(T)}(x, y, z)  
 Cartesian(x, y, z) = Cartesian(promote(x, y, z)...)
 Cartesian{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Cartesian{F}, c)
-dist(representation::Cartesian) = one(eltype(typeof(representation))) # Unit sphere distance
+dist(::Cartesian{T}) where {T} = one(T) # Unit sphere distance
 
 
 """
@@ -213,13 +213,14 @@ Spherical(s::AbstractSphericalRepresentation) = Spherical(lat(s), lon(s))
 Spherical(s::Spherical) = s
 
 # SphericalD conversions
-SphericalD(s::AbstractSphericalRepresentation, d) = SphericalD(lat(s), lon(s), d)
-SphericalD(s::SphericalD) = s
-SphericalD(c::Cartesian, d) = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
-                                         _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)), d)
-SphericalD(c::CartesianD) = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
+SphericalD(s::AbstractSphericalRepresentation; distance = dist(s)) = SphericalD(lat(s), lon(s), distance)
+SphericalD(s::SphericalD; distance = dist(s)) = SphericalD(lat(s), lon(s), distance)
+SphericalD(c::Cartesian{T}; distance = one(T)) where {T} = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
+                                         _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)), distance)
+SphericalD(c::CartesianD; distance = dist(c)) = SphericalD(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c)),
                                        _cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c)),
-                                       dist(c))
+                                       distance)
+SphericalD(d) = x::AbstractRepresentation -> SphericalD(x, distance = d)
 
 # Cartesian conversions  
 Cartesian(s::AbstractSphericalRepresentation) = Cartesian(_spherical_to_cart_x(lat(s), lon(s)),
@@ -229,14 +230,15 @@ Cartesian(c::AbstractCartesianRepresentation) = Cartesian(x_coord(c), y_coord(c)
 Cartesian(c::Cartesian) = c
 
 # CartesianD conversions
-CartesianD(s::Spherical, d) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), d),
-                                         _spherical_to_cart_y(lat(s), lon(s), d),
-                                         _spherical_to_cart_z(lat(s), lon(s), d))
-CartesianD(s::SphericalD) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), dist(s)),
+CartesianD(s::Spherical; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), distance),
+                                         _spherical_to_cart_y(lat(s), lon(s), distance),
+                                         _spherical_to_cart_z(lat(s), lon(s), distance))
+CartesianD(s::SphericalD; distance = dist(s)) = CartesianD(_spherical_to_cart_x(lat(s), lon(s), distance),
                                        _spherical_to_cart_y(lat(s), lon(s), dist(s)),
                                        _spherical_to_cart_z(lat(s), lon(s), dist(s)))
-CartesianD(c::Cartesian, d) = CartesianD(d * x_coord(c), d * y_coord(c), d * z_coord(c))
-CartesianD(c::CartesianD) = c
+CartesianD(c::Cartesian; distance = dist(c)) = CartesianD(distance * x_coord(c), distance * y_coord(c), distance * z_coord(c))
+CartesianD(c::CartesianD; distance = dist(c)) = CartesianD(distance * x_coord(c), distance * y_coord(c), distance * z_coord(c))
+CartesianD(d) = x::AbstractRepresentation -> CartesianD(x, distance = d)
 
 ############################## BASE.CONVERT METHODS ##############################
 
@@ -244,44 +246,22 @@ CartesianD(c::CartesianD) = c
 Base.convert(::Type{T}, c::T) where {T<:AbstractRepresentation} = c
 
 # Spherical conversions
-Base.convert(::Type{Spherical{T}}, c::AbstractCartesianRepresentation) where {T} = 
-    Spherical{T}(T(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c))), 
-                 T(_cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c))))
-
-Base.convert(::Type{Spherical{T}}, s::AbstractSphericalRepresentation) where {T} = 
-    Spherical{T}(T(lat(s)), T(lon(s)))
+Base.convert(::Type{Spherical{T}}, c::AbstractCartesianRepresentation) where {T} = Spherical(c)
+Base.convert(::Type{Spherical{T}}, s::AbstractSphericalRepresentation) where {T} = Spherical(s)
+Base.convert(::Type{Spherical{T}}, s::Spherical) where {T} = Spherical(s)
 
 # SphericalD conversions  
-Base.convert(::Type{SphericalD{T,D}}, s::AbstractSphericalRepresentation) where {T,D} =
-    SphericalD{T,D}(T(lat(s)), T(lon(s)), D(hasfield(typeof(s), :distance) ? dist(s) : 1))
-
-Base.convert(::Type{SphericalD{T,D}}, c::AbstractCartesianRepresentation) where {T,D} =
-    SphericalD{T,D}(T(_cart_to_spherical_lat(x_coord(c), y_coord(c), z_coord(c))),
-                    T(_cart_to_spherical_lon(x_coord(c), y_coord(c), z_coord(c))),
-                    D(isa(c, CartesianD) ? dist(c) : 1))
+Base.convert(::Type{SphericalD{T,D}}, s::AbstractSphericalRepresentation) where {T,D} = SphericalD(s)
+Base.convert(::Type{SphericalD{T,D}}, c::AbstractCartesianRepresentation) where {T,D} = SphericalD(c)
 
 # Cartesian conversions
-Base.convert(::Type{Cartesian{T}}, s::AbstractSphericalRepresentation) where {T} =
-    Cartesian{T}(T(_spherical_to_cart_x(lat(s), lon(s))),
-                 T(_spherical_to_cart_y(lat(s), lon(s))),
-                 T(_spherical_to_cart_z(lat(s), lon(s))))
-
-Base.convert(::Type{Cartesian{T}}, c::AbstractCartesianRepresentation) where {T} =
-    Cartesian{T}(T(x_coord(c)), T(y_coord(c)), T(z_coord(c)))
+Base.convert(::Type{Cartesian{T}}, s::AbstractSphericalRepresentation) where {T} = Cartesian(s)
+Base.convert(::Type{Cartesian{T}}, c::AbstractCartesianRepresentation) where {T} = Cartesian(c)
 
 # CartesianD conversions
-Base.convert(::Type{CartesianD{T}}, s::SphericalD) where {T} = 
-    CartesianD{T}(T(_spherical_to_cart_x(lat(s), lon(s), dist(s))),
-                  T(_spherical_to_cart_y(lat(s), lon(s), dist(s))),
-                  T(_spherical_to_cart_z(lat(s), lon(s), dist(s))))
-
-Base.convert(::Type{CartesianD{T}}, s::Spherical) where {T} =
-    CartesianD{T}(T(_spherical_to_cart_x(lat(s), lon(s))),
-                  T(_spherical_to_cart_y(lat(s), lon(s))),
-                  T(_spherical_to_cart_z(lat(s), lon(s))))
-
-Base.convert(::Type{CartesianD{T}}, c::AbstractCartesianRepresentation) where {T} = 
-    CartesianD{T}(T(x_coord(c)), T(y_coord(c)), T(z_coord(c)))
+Base.convert(::Type{CartesianD{T}}, s::SphericalD) where {T} = CartesianD(s)
+Base.convert(::Type{CartesianD{T}}, s::Spherical) where {T} = CartesianD(s)
+Base.convert(::Type{CartesianD{T}}, c::AbstractCartesianRepresentation) where {T} = CartesianD(c)
 
 ############################## EQUALITY AND HASHING ##############################
 
@@ -340,10 +320,10 @@ function Base.:(==)(a::AbstractRepresentation, b::AbstractRepresentation)
 end
 
 # Helper function to compare fields of same type
-_fields_equal(a::Spherical, b::Spherical) = (a.latitude == b.latitude) && (a.longitude == b.longitude)
-_fields_equal(a::SphericalD, b::SphericalD) = (a.latitude == b.latitude) && (a.longitude == b.longitude) && (a.distance == b.distance)
-_fields_equal(a::Cartesian, b::Cartesian) = (a.x == b.x) && (a.y == b.y) && (a.z == b.z)
-_fields_equal(a::CartesianD, b::CartesianD) = (a.x == b.x) && (a.y == b.y) && (a.z == b.z)
+_fields_equal(a::Spherical, b::Spherical) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude)
+_fields_equal(a::SphericalD, b::SphericalD) = isequal(a.latitude, b.latitude) && isequal(a.longitude, b.longitude) && isequal(a.distance, b.distance)
+_fields_equal(a::Cartesian, b::Cartesian) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
+_fields_equal(a::CartesianD, b::CartesianD) = isequal(a.x, b.x) && isequal(a.y, b.y) && isequal(a.z, b.z)
 
 """
     isequal(a::AbstractRepresentation, b::AbstractRepresentation)
