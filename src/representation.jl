@@ -204,8 +204,8 @@ Base.convert(::Type{Cartesian{T}}, s::Spherical) where {T} = Cartesian(s)
 Base.convert(::Type{Cartesian{T}}, c::Cartesian) where {T} = Cartesian(c)
 
 # Pretty printing
-Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude))}(lon=$(s.longitude), lat=$(s.latitude))")
-Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
+Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude)), $(typeof(s.distance))}(lon=$(s.longitude), lat=$(s.latitude), dist = $(s.distance))")
+Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x * c.distance), y=$(c.y * c.distance), z=$(c.z * c.distance))")
 
 
 
