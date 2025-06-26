@@ -14,5 +14,6 @@ export
   AbstractRepresentation,
   x_coord, y_coord, z_coord, lat, lon, dist,
   distance, norm,
-  AbstractFrame, ICRS, FK4, FK5, FK4NoETerms, HADec, AltAz, Ecliptic, Galactic, Supergalactic, TEME, CIRS, ITRS, HCRS
+  AbstractFrame, ICRS, FK4, FK5, FK4NoETerms, HADec, AltAz, Ecliptic, Galactic, Supergalactic, TEME, CIRS, ITRS, HCRS,
+  ra, dec, gal, gab, alt, az, ha, β, λ, eclon, eclat, sgl, sgb
 end
