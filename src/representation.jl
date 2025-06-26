@@ -86,12 +86,12 @@ lat(representation::Spherical) = representation.latitude
 """
     Cartesian{T} <: AbstractRepresentation
 
-Normalized Cartesian coordinates on a unit sphere (x, y, z with ||r|| = 1).
+Cartesian coordinates (x, y, z).
 
 # Fields
-- `x::T`: X-coordinate (normalized)
-- `y::T`: Y-coordinate (normalized)
-- `z::T`: Z-coordinate (normalized)
+- `x::T`: X-coordinate
+- `y::T`: Y-coordinate 
+- `z::T`: Z-coordinate 
 
 # Examples
 ```julia
@@ -102,25 +102,15 @@ struct Cartesian{T} <: AbstractRepresentation
     x::T
     y::T
     z::T
-    distance::T
-    function Cartesian{T}(x, y, z, distance) where {T}
-        new{T}(x, y, z, distance)
+    function Cartesian{T}(x, y, z) where {T}
+        new{T}(x, y, z)
     end
 end
-Cartesian(x::D, y::D, z::D, distance::D) where {D} = Cartesian{D}(x, y, z, distance)  
-Cartesian(x::D, y::D, z::D, distance::D) where {D <: Real} = Cartesian{float(D)}(x, y, z, distance)  
-Cartesian(x, y, z, distance) = Cartesian(promote(x, y, z, distance)...)
-Cartesian{F}(c::T) where {F,T<:AbstractRepresentation} = convert(Cartesian{F, typeof(dist(c))}, c)
-Cartesian{F}(c::Cartesian{T}) where {F,T} = Cartesian{F}(c.x, c.y, c.z, c.distance)
-Cartesian{F}(c::Cartesian{T}, distance::D) where {F,T,D} = Cartesian{F}(c.x, c.y, c.z, distance)
+Cartesian(x::D, y::D, z::D) where {D} = Cartesian{D}(x, y, z)  
+Cartesian(x::D, y::D, z::D) where {D <: Real} = Cartesian{float(D)}(x, y, z)  
+Cartesian(x, y, z) = Cartesian(promote(x, y, z)...)
 
-function Cartesian(x, y, z) 
-    distance = sqrt(x^2 + y^2 + z^2)
-    if iszero(distance)
-        throw(ArgumentError("Cannot normalize zero vector"))
-    end
-    Cartesian(x / distance, y / distance, z / distance, distance)
-end
+
 
 """
     x_coord(representation::Cartesian)
@@ -163,7 +153,7 @@ julia> dist(Cartesian(3.0, 4.0, 0.0))
 """
 
 dist(representation::Spherical) = representation.distance
-dist(representation::Cartesian) = representation.distance
+dist(representation::Cartesian) = sqrt(x_coord(representation)^2 + y_coord(representation)^2 + z_coord(representation)^2)
 
 
 
@@ -205,7 +195,7 @@ Base.convert(::Type{Cartesian{T}}, c::Cartesian) where {T} = Cartesian(c)
 
 # Pretty printing
 Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude)), $(typeof(s.distance))}(lon=$(s.longitude), lat=$(s.latitude), dist = $(s.distance))")
-Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x * c.distance), y=$(c.y * c.distance), z=$(c.z * c.distance))")
+Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
 
 
 
