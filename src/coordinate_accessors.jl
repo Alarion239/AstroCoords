@@ -30,7 +30,7 @@ ICRS, Galactic, AltAz, FK4, FK5, FK4NoETerms, HADec, Ecliptic, Supergalactic, TE
 # =============================================================================
 
 """
-    lon(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractSphericalRepresentation}
+    lon(coordinate::Coordinate{AbstractFrame, Spherical})
 
 Extract the longitude component from a coordinate with spherical representation.
 
@@ -40,10 +40,10 @@ Extract the longitude component from a coordinate with spherical representation.
 # Returns
 - Longitude component from the underlying representation
 """
-lon(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractSphericalRepresentation} = lon(coordinate.representation)
+lon(coordinate::Coordinate{AbstractFrame, Spherical}) = lon(coordinate.representation)
 
 """
-    lat(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractSphericalRepresentation}
+    lat(coordinate::Coordinate{AbstractFrame, Spherical})
 
 Extract the latitude component from a coordinate with spherical representation.
 
@@ -53,23 +53,23 @@ Extract the latitude component from a coordinate with spherical representation.
 # Returns
 - Latitude component from the underlying representation
 """
-lat(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractSphericalRepresentation} = lat(coordinate.representation)
+lat(coordinate::Coordinate{AbstractFrame, Spherical}) = lat(coordinate.representation)
 
 """
-    dist(coordinate::Coordinate{F, SphericalD}) where {F<:AbstractFrame}
+    dist(coordinate::Coordinate{AbstractFrame, AbstractRepresentation})
 
 Extract the distance component from a coordinate with spherical representation that includes distance.
 
 # Arguments
-- `coordinate`: Coordinate with `SphericalD` representation
+- `coordinate`: Coordinate with `AbstractRepresentation` representation
 
 # Returns
 - Distance component from the underlying representation
 """
-dist(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:SphericalD} = dist(coordinate.representation)
+dist(coordinate::Coordinate{AbstractFrame, AbstractRepresentation}) = dist(coordinate.representation)
 
 """
-    x_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation}
+    x_coord(coordinate::Coordinate{AbstractFrame, Cartesian})
 
 Extract the x-coordinate component from a coordinate with Cartesian representation.
 
@@ -79,10 +79,10 @@ Extract the x-coordinate component from a coordinate with Cartesian representati
 # Returns
 - X-component from the underlying representation
 """
-x_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation} = x_coord(coordinate.representation)
+x_coord(coordinate::Coordinate{AbstractFrame, Cartesian}) = x_coord(coordinate.representation)
 
 """
-    y_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation}
+    y_coord(coordinate::Coordinate{AbstractFrame, Cartesian})
 
 Extract the y-coordinate component from a coordinate with Cartesian representation.
 
@@ -92,10 +92,10 @@ Extract the y-coordinate component from a coordinate with Cartesian representati
 # Returns
 - Y-component from the underlying representation
 """
-y_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation} = y_coord(coordinate.representation)
+y_coord(coordinate::Coordinate{AbstractFrame, Cartesian}) = y_coord(coordinate.representation)
 
 """
-    z_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation}
+    z_coord(coordinate::Coordinate{AbstractFrame, Cartesian})
 
 Extract the z-coordinate component from a coordinate with Cartesian representation.
 
@@ -105,20 +105,7 @@ Extract the z-coordinate component from a coordinate with Cartesian representati
 # Returns
 - Z-component from the underlying representation
 """
-z_coord(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:AbstractCartesianRepresentation} = z_coord(coordinate.representation)
-
-"""
-    dist(coordinate::Coordinate{F, CartesianD}) where {F<:AbstractFrame}
-
-Extract the distance (magnitude) from a coordinate with Cartesian representation that includes distance.
-
-# Arguments
-- `coordinate`: Coordinate with `CartesianD` representation
-
-# Returns
-- Distance (magnitude of the vector) from the underlying representation
-"""
-dist(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:CartesianD} = dist(coordinate.representation)
+z_coord(coordinate::Coordinate{AbstractFrame, Cartesian}) = z_coord(coordinate.representation)
 
 
 # =============================================================================
@@ -126,7 +113,7 @@ dist(coordinate::Coordinate{F, R}) where {F<:AbstractFrame, R<:CartesianD} = dis
 # =============================================================================
 
 """
-    ra(c::Coordinate{ICRS, <:AbstractSphericalRepresentation})
+    ra(c::Coordinate{F, R}) where {F::ICRS,R::Spherical}
 
 Extract the right ascension from an ICRS coordinate.
 
@@ -143,10 +130,10 @@ julia> ra(coord)
 0.5235987755982988
 ```
 """
-ra(c::Coordinate{ICRS, <:AbstractSphericalRepresentation}) = lon(c.representation)
+ra(c::Coordinate{ICRS, Spherical}) = lon(c.representation)
 
 """
-    dec(c::Coordinate{ICRS, <:AbstractSphericalRepresentation})
+    dec(c::Coordinate{ICRS, Spherical})
 
 Extract the declination from an ICRS coordinate.
 
@@ -156,14 +143,14 @@ Extract the declination from an ICRS coordinate.
 # Returns
 - Declination component (same type as coordinate representation)
 """
-dec(c::Coordinate{ICRS, <:AbstractSphericalRepresentation}) = lat(c.representation)
+dec(c::Coordinate{ICRS, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # Galactic Frame Accessors (Galactic Longitude, Galactic Latitude)
 # =============================================================================
 
 """
-    l(c::Coordinate{Galactic, <:AbstractSphericalRepresentation})
+    l(c::Coordinate{Galactic, Spherical})
 
 Extract the galactic longitude from a Galactic coordinate.
 
@@ -173,10 +160,10 @@ Extract the galactic longitude from a Galactic coordinate.
 # Returns
 - Galactic longitude component (same type as coordinate representation)
 """
-gal(c::Coordinate{Galactic, <:AbstractSphericalRepresentation}) = lon(c.representation)
+gal(c::Coordinate{Galactic, Spherical}) = lon(c.representation)
 
 """
-    b(c::Coordinate{Galactic, <:AbstractSphericalRepresentation})
+    b(c::Coordinate{Galactic, Spherical})
 
 Extract the galactic latitude from a Galactic coordinate.
 
@@ -186,14 +173,14 @@ Extract the galactic latitude from a Galactic coordinate.
 # Returns
 - Galactic latitude component (same type as coordinate representation)
 """
-gab(c::Coordinate{Galactic, <:AbstractSphericalRepresentation}) = lat(c.representation)
+gab(c::Coordinate{Galactic, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # AltAz Frame Accessors (Altitude, Azimuth)
 # =============================================================================
 
 """
-    alt(c::Coordinate{<:AltAz, <:AbstractSphericalRepresentation})
+    alt(c::Coordinate{<:AltAz, Spherical})
 
 Extract the altitude (elevation) from an AltAz coordinate.
 
@@ -203,10 +190,10 @@ Extract the altitude (elevation) from an AltAz coordinate.
 # Returns
 - Altitude component (same type as coordinate representation)
 """
-alt(c::Coordinate{<:AltAz, <:AbstractSphericalRepresentation}) = lat(c.representation)
+alt(c::Coordinate{AltAz, Spherical}) = lat(c.representation)
 
 """
-    az(c::Coordinate{<:AltAz, <:AbstractSphericalRepresentation})
+    az(c::Coordinate{<:AltAz, Spherical})
 
 Extract the azimuth from an AltAz coordinate.
 
@@ -216,14 +203,14 @@ Extract the azimuth from an AltAz coordinate.
 # Returns
 - Azimuth component (same type as coordinate representation)
 """
-az(c::Coordinate{<:AltAz, <:AbstractSphericalRepresentation}) = lon(c.representation)
+az(c::Coordinate{AltAz, Spherical}) = lon(c.representation)
 
 # =============================================================================
 # HADec Frame Accessors (Hour Angle, Declination)
 # =============================================================================
 
 """
-    ha(c::Coordinate{<:HADec, <:AbstractSphericalRepresentation})
+    ha(c::Coordinate{<:HADec, Spherical})
 
 Extract the hour angle from a HADec coordinate.
 
@@ -233,10 +220,10 @@ Extract the hour angle from a HADec coordinate.
 # Returns
 - Hour angle component (same type as coordinate representation)
 """
-ha(c::Coordinate{<:HADec, <:AbstractSphericalRepresentation}) = lon(c.representation)
+ha(c::Coordinate{HADec, Spherical}) = lon(c.representation)
 
 """
-    dec(c::Coordinate{<:HADec, <:AbstractSphericalRepresentation})
+    dec(c::Coordinate{<:HADec, Spherical})
 
 Extract the declination from a HADec coordinate.
 
@@ -246,14 +233,14 @@ Extract the declination from a HADec coordinate.
 # Returns
 - Declination component (same type as coordinate representation)
 """
-dec(c::Coordinate{<:HADec, <:AbstractSphericalRepresentation}) = lat(c.representation)
+dec(c::Coordinate{HADec, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # FK4/FK5 Frame Accessors (Right Ascension, Declination)
 # =============================================================================
 
 """
-    ra(c::Coordinate{<:FK4, <:AbstractSphericalRepresentation})
+    ra(c::Coordinate{<:FK4, Spherical})
 
 Extract the right ascension from an FK4 coordinate.
 
@@ -263,10 +250,10 @@ Extract the right ascension from an FK4 coordinate.
 # Returns
 - Right ascension component (same type as coordinate representation)
 """
-ra(c::Coordinate{<:FK4, <:AbstractSphericalRepresentation}) = lon(c.representation)
+ra(c::Coordinate{FK4, Spherical}) = lon(c.representation)
 
 """
-    dec(c::Coordinate{<:FK4, <:AbstractSphericalRepresentation})
+    dec(c::Coordinate{<:FK4, Spherical})
 
 Extract the declination from an FK4 coordinate.
 
@@ -276,10 +263,10 @@ Extract the declination from an FK4 coordinate.
 # Returns
 - Declination component (same type as coordinate representation)
 """
-dec(c::Coordinate{<:FK4, <:AbstractSphericalRepresentation}) = lat(c.representation)
+dec(c::Coordinate{FK4, Spherical}) = lat(c.representation)
 
 """
-    ra(c::Coordinate{<:FK5, <:AbstractSphericalRepresentation})
+    ra(c::Coordinate{<:FK5, Spherical})
 
 Extract the right ascension from an FK5 coordinate.
 
@@ -289,10 +276,10 @@ Extract the right ascension from an FK5 coordinate.
 # Returns
 - Right ascension component (same type as coordinate representation)
 """
-ra(c::Coordinate{<:FK5, <:AbstractSphericalRepresentation}) = lon(c.representation)
+ra(c::Coordinate{FK5, Spherical}) = lon(c.representation)
 
 """
-    dec(c::Coordinate{<:FK5, <:AbstractSphericalRepresentation})
+    dec(c::Coordinate{<:FK5, Spherical})
 
 Extract the declination from an FK5 coordinate.
 
@@ -302,10 +289,10 @@ Extract the declination from an FK5 coordinate.
 # Returns
 - Declination component (same type as coordinate representation)
 """
-dec(c::Coordinate{<:FK5, <:AbstractSphericalRepresentation}) = lat(c.representation)
+dec(c::Coordinate{FK5, Spherical}) = lat(c.representation)
 
 """
-    ra(c::Coordinate{<:FK4NoETerms, <:AbstractSphericalRepresentation})
+    ra(c::Coordinate{<:FK4NoETerms, Spherical})
 
 Extract the right ascension from an FK4NoETerms coordinate.
 
@@ -315,10 +302,10 @@ Extract the right ascension from an FK4NoETerms coordinate.
 # Returns
 - Right ascension component (same type as coordinate representation)
 """
-ra(c::Coordinate{<:FK4NoETerms, <:AbstractSphericalRepresentation}) = lon(c.representation)
+ra(c::Coordinate{FK4NoETerms, Spherical}) = lon(c.representation)
 
 """
-    dec(c::Coordinate{<:FK4NoETerms, <:AbstractSphericalRepresentation})
+    dec(c::Coordinate{<:FK4NoETerms, Spherical})
 
 Extract the declination from an FK4NoETerms coordinate.
 
@@ -328,14 +315,14 @@ Extract the declination from an FK4NoETerms coordinate.
 # Returns
 - Declination component (same type as coordinate representation)
 """
-dec(c::Coordinate{<:FK4NoETerms, <:AbstractSphericalRepresentation}) = lat(c.representation)
+dec(c::Coordinate{FK4NoETerms, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # Ecliptic Frame Accessors (Ecliptic Longitude, Ecliptic Latitude)
 # =============================================================================
 
 """
-    λ(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation})
+    λ(c::Coordinate{<:Ecliptic, Spherical})
 
 Extract the ecliptic longitude (lambda) from an Ecliptic coordinate.
 
@@ -345,10 +332,10 @@ Extract the ecliptic longitude (lambda) from an Ecliptic coordinate.
 # Returns
 - Ecliptic longitude component (same type as coordinate representation)
 """
-λ(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation}) = lon(c.representation)
+λ(c::Coordinate{Ecliptic, Spherical}) = lon(c.representation)
 
 """
-    β(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation})
+    β(c::Coordinate{<:Ecliptic, Spherical})
 
 Extract the ecliptic latitude (beta) from an Ecliptic coordinate.
 
@@ -358,10 +345,10 @@ Extract the ecliptic latitude (beta) from an Ecliptic coordinate.
 # Returns
 - Ecliptic latitude component (same type as coordinate representation)
 """
-β(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation}) = lat(c.representation)
+β(c::Coordinate{Ecliptic, Spherical}) = lat(c.representation)
 
 """
-    eclon(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation})
+    eclon(c::Coordinate{<:Ecliptic, Spherical})
 
 Extract the ecliptic longitude from an Ecliptic coordinate (ASCII alternative to λ).
 
@@ -371,10 +358,10 @@ Extract the ecliptic longitude from an Ecliptic coordinate (ASCII alternative to
 # Returns
 - Ecliptic longitude component (same type as coordinate representation)
 """
-eclon(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation}) = lon(c.representation)
+eclon(c::Coordinate{Ecliptic, Spherical}) = lon(c.representation)
 
 """
-    eclat(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation})
+    eclat(c::Coordinate{<:Ecliptic, Spherical})
 
 Extract the ecliptic latitude from an Ecliptic coordinate (ASCII alternative to β).
 
@@ -384,14 +371,14 @@ Extract the ecliptic latitude from an Ecliptic coordinate (ASCII alternative to 
 # Returns
 - Ecliptic latitude component (same type as coordinate representation)
 """
-eclat(c::Coordinate{<:Ecliptic, <:AbstractSphericalRepresentation}) = lat(c.representation)
+eclat(c::Coordinate{Ecliptic, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # Supergalactic Frame Accessors
 # =============================================================================
 
 """
-    sgl(c::Coordinate{Supergalactic, <:AbstractSphericalRepresentation})
+    sgl(c::Coordinate{Supergalactic, Spherical})
 
 Extract the supergalactic longitude from a Supergalactic coordinate.
 
@@ -401,10 +388,10 @@ Extract the supergalactic longitude from a Supergalactic coordinate.
 # Returns
 - Supergalactic longitude component (same type as coordinate representation)
 """
-sgl(c::Coordinate{Supergalactic, <:AbstractSphericalRepresentation}) = lon(c.representation)
+sgl(c::Coordinate{Supergalactic, Spherical}) = lon(c.representation)
 
 """
-    sgb(c::Coordinate{Supergalactic, <:AbstractSphericalRepresentation})
+    sgb(c::Coordinate{Supergalactic, Spherical})
 
 Extract the supergalactic latitude from a Supergalactic coordinate.
 
@@ -414,7 +401,7 @@ Extract the supergalactic latitude from a Supergalactic coordinate.
 # Returns
 - Supergalactic latitude component (same type as coordinate representation)
 """
-sgb(c::Coordinate{Supergalactic, <:AbstractSphericalRepresentation}) = lat(c.representation)
+sgb(c::Coordinate{Supergalactic, Spherical}) = lat(c.representation)
 
 # =============================================================================
 # High-Performance Property Access Interface

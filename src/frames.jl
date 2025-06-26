@@ -50,6 +50,14 @@ struct Ecliptic{Origin <: EclipticFrameOrigin, Equinox <: EclipticEquinoxType, E
     end
 end
 
+const GeocentricMeanEcliptic = Ecliptic{Geocentric, MeanEquinox}
+const GeocentricTrueEcliptic = Ecliptic{Geocentric, TrueEquinox}
+const BarycentricMeanEcliptic = Ecliptic{Barycentric, MeanEquinox}
+const BarycentricTrueEcliptic = Ecliptic{Barycentric, TrueEquinox}
+const HeliocentricMeanEcliptic = Ecliptic{Heliocentric, MeanEquinox}
+const HeliocentricTrueEcliptic = Ecliptic{Heliocentric, TrueEquinox}
+const HeliocentricIAU76Ecliptic = Ecliptic{Heliocentric, IAU76Equinox}
+
 # ================= Observer-dependent Frames =================
 
 struct AltAz{E, L, T} <: AbstractFrame 
