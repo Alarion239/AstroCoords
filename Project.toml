@@ -3,6 +3,10 @@ uuid = "c7f81af5-ae1c-4d77-a3db-fd3cd0215371"
 authors = ["Alexander Belotserkovtsev <abelotserkovtsev@college.harvard.edu>", "Anna Mikhailova <ann.mihaylova0306@gmail.com>"]
 version = "1.0.0-DEV"
 
+[deps]
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+StaticArrays = "90137ffa-7385-5640-81b9-e52037218182"
+
 [compat]
 julia = "1.9"
 

@@ -7,27 +7,12 @@ struct Galactic <: AbstractFrame end
 struct Supergalactic <: AbstractFrame end
 
 # ================= Equinox-Dependent Frames =================
-struct FK5{E} <: AbstractFrame
-    equinox :: E           
-    function FK5(equinox::E) where E
-        new{E}(equinox)
-    end
-end
+struct FK5{E} <: AbstractFrame end
 
 
-struct FK4{E} <: AbstractFrame 
-    equinox :: E           
-    function FK4(equinox::E) where E
-        new{E}(equinox)
-    end
-end
+struct FK4{E} <: AbstractFrame end
 
-struct FK4NoETerms{E} <: AbstractFrame 
-    equinox :: E           
-    function FK4NoETerms(equinox::E) where E
-        new{E}(equinox)
-    end
-end
+struct FK4NoETerms{E} <: AbstractFrame end
 
 
 # ================= Ecliptic Frames =================

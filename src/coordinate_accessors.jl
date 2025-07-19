@@ -150,7 +150,7 @@ dec(c::Coordinate{<:ICRS, <:Spherical}) = lat(c.representation)
 # =============================================================================
 
 """
-    l(c::Coordinate{Galactic, Spherical})
+    gal(c::Coordinate{Galactic, Spherical})
 
 Extract the galactic longitude from a Galactic coordinate.
 
@@ -163,7 +163,7 @@ Extract the galactic longitude from a Galactic coordinate.
 gal(c::Coordinate{<:Galactic, <:Spherical}) = lon(c.representation)
 
 """
-    b(c::Coordinate{Galactic, Spherical})
+    gab(c::Coordinate{Galactic, Spherical})
 
 Extract the galactic latitude from a Galactic coordinate.
 
@@ -413,7 +413,7 @@ sgb(c::Coordinate{<:Supergalactic, <:Spherical}) = lat(c.representation)
 Provide property-style access to coordinate components and frame-specific accessors.
 
 This method enables both generic coordinate access (`.lon`, `.lat`, `.dist`, `.x`, `.y`, `.z`)
-and frame-specific access (`.ra`, `.dec`, `.l`, `.b`, etc.) through Julia's property syntax.
+and frame-specific access (`.ra`, `.dec`, `.alt`, `.az`, etc.) through Julia's property syntax.
 
 Performance is optimized using constant folding with simple if-else chains rather than
 dictionaries or other dynamic dispatch mechanisms.
@@ -438,7 +438,6 @@ dictionaries or other dynamic dispatch mechanisms.
 
 ## Frame-Specific Properties
 - `:ra`, `:dec`: Right ascension, declination (ICRS, FK4, FK5, FK4NoETerms, HADec)
-- `:l`, `:b`: Galactic longitude, latitude (Galactic)
 - `:alt`, `:az`: Altitude, azimuth (AltAz)
 - `:ha`: Hour angle (HADec)
 - `:λ`, `:β`: Ecliptic longitude, latitude (Ecliptic, Unicode)
@@ -489,10 +488,7 @@ julia> coord.lat    # Generic latitude
         return ra(c)
     elseif s === :dec
         return dec(c)
-    elseif s === :l
-        return l(c)
-    elseif s === :b
-        return b(c)
+
     elseif s === :alt
         return alt(c)
     elseif s === :az

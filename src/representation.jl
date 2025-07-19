@@ -35,12 +35,19 @@ struct Spherical{T, D} <: AbstractRepresentation
         new{T,D}(lon_norm, lat_norm, distance)
     end
 end
+
+# Type alias for degree-based spherical coordinates  
+const SphericalD{T,D} = Spherical{T,D} where {T,D}
+
 Spherical(lon::T, lat::T) where {T} = Spherical{T, Float64}(lon, lat, 1.0)
 Spherical(lon, lat) = Spherical(promote(lon, lat)..., 1.0)
 Spherical{F}(c::AbstractRepresentation) where {F} = convert(Spherical{F, Float64}, c)
 Spherical(lon::T, lat::T, dist::D) where {T, D} = Spherical{T,D}(lon, lat, dist)
 Spherical(lon, lat, dist) = Spherical(promote(lon, lat)..., dist)
 Spherical{T,D}(c::R, dist::Real) where {T,D,R<:AbstractRepresentation} = convert(Spherical{T,D}, Spherical(c, dist))
+
+# Constructor for SphericalD (same as Spherical since it's just an alias)
+# SphericalD constructors are provided automatically through the type alias
 
 # Optimized helper functions for angle normalization
 function _normalize_lat_lon(lat::T, lon::T) where T
@@ -198,7 +205,7 @@ Base.show(io::IO, s::Spherical) = print(io, "Spherical{$(typeof(s.longitude)), $
 Base.show(io::IO, c::Cartesian) = print(io, "Cartesian{$(typeof(c.x))}(x=$(c.x), y=$(c.y), z=$(c.z))")
 
 
-
+Base.isapprox(a::Cartesian, b::Cartesian; kwargs...) = isapprox(a.x, b.x; kwargs...) && isapprox(a.y, b.y; kwargs...) && isapprox(a.z, b.z; kwargs...)
 
 
 

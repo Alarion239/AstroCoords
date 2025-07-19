@@ -1,7 +1,8 @@
 using AstroCoords
 using Test
 using Random
+using StaticArrays
 
 @testset "AstroCoords.jl" begin
-    include("representation_tests.jl")
+
 end

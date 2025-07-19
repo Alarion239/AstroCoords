@@ -8,7 +8,7 @@ a reference frame with a coordinate representation. It provides the foundation f
 coordinate operations in AstroCoords.jl.
 """
 
-using ..AstroCoords: AbstractFrame, AbstractRepresentation
+using ..AstroCoords: AbstractFrame, AbstractRepresentation, Cartesian
 
 """
     Coordinate{F<:AbstractFrame, R<:AbstractRepresentation}
@@ -56,3 +56,39 @@ struct Coordinate{F<:AbstractFrame, R<:AbstractRepresentation}
     end
 end
 
+"""
+    transform(c::Coordinate, target::AbstractFrame) -> Coordinate
+
+Transform a coordinate from its current frame to a target frame.
+
+This high-level interface handles representation conversions automatically:
+1. Converts any representation to Cartesian
+2. Calls the low-level transform
+3. Wraps the result back into a Coordinate
+
+# Examples
+```julia-repl
+julia> using AstroCoords
+
+julia> # Create a coordinate in ICRS
+julia> coord = Coordinate(ICRS(), SphericalD(deg2rad(45), deg2rad(30), 100.0))
+
+julia> # Transform to Galactic frame
+julia> gal_coord = transform(coord, Galactic())
+
+julia> gal_coord.frame
+Galactic()
+```
+"""
+function transform(c::Coordinate{F,R}, target::T) where {
+    F<:AbstractFrame, R<:AbstractRepresentation, T<:AbstractFrame}
+    
+    # 1. Convert any representation into Cartesian
+    cart = R <: Cartesian ? c.representation : Cartesian(c.representation)
+    
+    # 2. Call the 3-arg graph engine — gives back a Cartesian
+    new_cart = transform(cart, typeof(c.frame), typeof(target))
+    
+    # 3. Wrap result into a Coordinate
+    return Coordinate(target, new_cart)
+end
